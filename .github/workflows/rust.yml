@@ -28,4 +28,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: aggro-${{ matrix.target }}
-        path: output/${{ matrix.device }}-sysupgrade.img
+        path: target/${{ matrix.target }}/release/aggro

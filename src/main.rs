@@ -2,19 +2,13 @@ mod cli;
 mod prop;
 mod types;
 
-use std::fmt::format;
+use clap::Parser;
+use log::{error, info};
+use serde::{Deserialize, Serialize};
 use std::io::BufRead;
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::time::Duration;
-use clap::Parser;
-use log::{error, info};
-use nix::sys::stat::Mode;
-use serde::{Deserialize, Serialize};
-
-fn prop_thread() {
-
-}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     pretty_env_logger::init();
@@ -25,9 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if std::fs::remove_file(&args.pipe_path).is_ok() {
         info!("original file at {:?} removed", args.pipe_path);
     }
-
-    let fifo_mode = Mode::S_IRWXU.union(Mode::S_IRWXG).union(Mode::S_IRWXO);
-    nix::unistd::mkfifo(&args.pipe_path, fifo_mode)?;
+    
     let pipe = std::fs::File::open(&args.pipe_path)?;
     let mut pipe = std::io::BufReader::new(pipe);
 
@@ -39,7 +31,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         loop {
             while let Ok(msg) = rx.recv_timeout(Duration::from_millis(500)) {
                 propagator.add(msg);
-            };
+            }
             propagator.propagate();
         }
     });
@@ -47,9 +39,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut line = String::new();
     loop {
         while let Ok(count) = pipe.read_line(&mut line) {
-            if count < 1 { break; }
+            if count < 1 {
+                break;
+            }
             let line_trimmed = line.trim();
-            if line_trimmed.is_empty() { break; }
+            if line_trimmed.is_empty() {
+                break;
+            }
             let Ok(msg) = serde_json::from_str::<types::Log>(line_trimmed) else {
                 error!("malformed json");
                 break;

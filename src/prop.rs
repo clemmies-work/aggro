@@ -1,8 +1,11 @@
 use crate::{cli, types};
 use log::error;
 use std::time::Duration;
+use serde::{Deserialize, Serialize};
 
 pub struct Propagator {
+    device_name: String,
+
     client: reqwest::blocking::Client,
     endpoint: String,
     username: String,
@@ -20,12 +23,12 @@ impl Propagator {
         );
         let username = args.username.clone();
         let password = args.password.clone();
-
-        println!("endpoint: {}", endpoint);
+        let device_name = args.device_name.clone();
 
         let queue = Vec::new();
 
         Self {
+            device_name,
             client,
             endpoint,
             username,
@@ -46,11 +49,22 @@ impl Propagator {
             return;
         }
 
+        #[derive(Serialize, Debug, Clone)]
+        struct Entry {
+            device_name: String,
+            content: types::Log,
+        }
+        let entries = self.queue.iter()
+            .map(|msg| Entry {
+                device_name: self.device_name.clone(),
+                content: msg.clone()
+            })
+            .collect::<Vec<_>>();
         if let Err(e) = self
             .client
             .post(&self.endpoint)
             .basic_auth(&self.username, Some(&self.password))
-            .json(&self.queue)
+            .json(&entries)
             .timeout(Duration::from_millis(1000))
             .send()
         {

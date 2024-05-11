@@ -18,7 +18,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: add rustup target
-      run: rustup target add ${{ matrix.target }}
+    - name: install cross
+      run: cargo install cross
     - name: build
-      run: cargo build --target ${{ matrix.target }} --verbose
+      run: cross build --target ${{ matrix.target }} --verbose

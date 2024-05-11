@@ -1,3 +1,4 @@
+use std::time::Duration;
 use log::error;
 use crate::{cli, types};
 
@@ -16,6 +17,8 @@ impl Propagator {
         let endpoint = format!("http://{}:{}/api/default/default/_json", args.host, args.port);
         let username = args.username.clone();
         let password = args.password.clone();
+
+        println!("endpoint: {}", endpoint);
         
         let queue = Vec::new();
         
@@ -36,9 +39,12 @@ impl Propagator {
     }
     
     pub fn propagate(&mut self) {
+        if self.queue.is_empty() { return; }
+
         if let Err(e) = self.client.post(&self.endpoint)
-            .basic_auth(&self.username, &self.password)
+            .basic_auth(&self.username, Some(&self.password))
             .json(&self.queue)
+            .timeout(Duration::from_millis(1000))
             .send() {
             error!("POSTing to remote failed: {:?}", e);
         }

@@ -17,47 +17,15 @@ pub struct ProcessInfo {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct DebugInfo {
-    file_path: String,
-    function_name: String,
-    line_of_code: usize,
-}
-
-serde_with::with_prefix!(pref_process "process_");
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct LogFlatten {
-    level: LogLevel,
-    us_since_unix_epoch: u128,
-
-    #[serde(flatten, with = "pref_process")]
-    process_info: ProcessInfo,
-    #[serde(flatten)]
-    debug_info: DebugInfo,
-
-    content: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(from="LogFlatten")]
 pub struct Log {
     level: LogLevel,
     us_since_unix_epoch: u128,
 
-    process_info: ProcessInfo,
-    debug_info: DebugInfo,
-
+    process_id: u32,
+    
+    file_path: String,
+    function_name: String,
+    line_of_code: usize,
+    
     content: String,
-}
-
-impl From<LogFlatten> for Log {
-    fn from(other: LogFlatten) -> Self {
-        Self {
-            level: other.level,
-            us_since_unix_epoch: other.us_since_unix_epoch,
-            process_info: other.process_info,
-            debug_info: other.debug_info,
-            content: other.content,
-        }
-    }
 }

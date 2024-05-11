@@ -52,12 +52,13 @@ impl Propagator {
         #[derive(Serialize, Debug, Clone)]
         struct Entry {
             device_name: String,
-            content: types::Log,
+            #[serde(flatten)]
+            log: types::Log,
         }
         let entries = self.queue.iter()
             .map(|msg| Entry {
                 device_name: self.device_name.clone(),
-                content: msg.clone()
+                log: msg.clone()
             })
             .collect::<Vec<_>>();
         if let Err(e) = self

@@ -1,5 +1,8 @@
 mod cli;
+mod prop;
+mod types;
 
+use std::fmt::format;
 use std::io::BufRead;
 use std::time::Duration;
 use clap::Parser;
@@ -7,17 +10,7 @@ use log::{error, info};
 use nix::sys::stat::Mode;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct Log {
-    us_since_unix_epoch: u128,
-    process_id: u32,
 
-    file_path: String,
-    function_name: String,
-    line_of_code: usize,
-
-    content: String,
-}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     pretty_env_logger::init();
@@ -33,19 +26,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     nix::unistd::mkfifo(&args.pipe_path, fifo_mode)?;
     let pipe = std::fs::File::open(&args.pipe_path)?;
     let mut pipe = std::io::BufReader::new(pipe);
+
+    let mut propagator = prop::Propagator::new(&args);
+
     let mut line = String::new();
-    while let Ok(count) = pipe.read_line(&mut line) {
-        std::thread::sleep(Duration::from_millis(1500));
-        if count < 1 { continue; }
-        match serde_json::from_str::<Log>(&line) {
-            Ok(msg) => {
-                error!("{:?}", msg);
-            },
-            Err(e) => {
-                error!("received malformed data: {:?}", e);
-            },
-        };
+    loop {
+        while let Ok(count) = pipe.read_line(&mut line) {
+            if count < 1 { break; }
+            let Ok(msg) = serde_json::from_str::<types::Log>(&line) else {
+                error!("malformed json");
+                break;
+            };
+            propagator.add(msg);
+            line.clear();
+        }
         line.clear();
+        propagator.propagate();
+        std::thread::sleep(Duration::from_millis(500));
     }
 
     Ok(())

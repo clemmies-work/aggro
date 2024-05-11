@@ -2,6 +2,8 @@ use std::io::BufRead;
 use std::sync::mpsc;
 use std::time::Duration;
 
+use nix::sys::stat::Mode;
+
 use clap::Parser;
 use log::{error, info};
 
@@ -18,6 +20,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if std::fs::remove_file(&args.pipe_path).is_ok() {
         info!("original file at {:?} removed", args.pipe_path);
     }
+    let fifo_mode = Mode::S_IRWXU.union(Mode::S_IRWXG).union(Mode::S_IRWXO);
+    nix::unistd::mkfifo(&args.pipe_path, fifo_mode)?;
 
     let pipe = std::fs::File::open(&args.pipe_path)?;
     let mut pipe = std::io::BufReader::new(pipe);

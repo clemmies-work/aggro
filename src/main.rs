@@ -1,14 +1,13 @@
-mod cli;
-mod prop;
-mod types;
+use std::io::BufRead;
+use std::sync::mpsc;
+use std::time::Duration;
 
 use clap::Parser;
 use log::{error, info};
-use serde::{Deserialize, Serialize};
-use std::io::BufRead;
-use std::sync::mpsc;
-use std::sync::mpsc::{Receiver, Sender};
-use std::time::Duration;
+
+mod cli;
+mod prop;
+mod types;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     pretty_env_logger::init();
@@ -19,7 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if std::fs::remove_file(&args.pipe_path).is_ok() {
         info!("original file at {:?} removed", args.pipe_path);
     }
-    
+
     let pipe = std::fs::File::open(&args.pipe_path)?;
     let mut pipe = std::io::BufReader::new(pipe);
 

@@ -21,4 +21,11 @@ jobs:
     - name: install cross
       run: cargo install cross
     - name: build
-      run: cross build --target ${{ matrix.target }} --verbose
+      run: cross build --release --target ${{ matrix.target }} --verbose
+    - name: show build
+      run: ls target
+    - name: upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: aggro-${{ matrix.target }}
+        path: output/${{ matrix.device }}-sysupgrade.img

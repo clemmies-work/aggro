@@ -23,12 +23,14 @@ pub struct DebugInfo {
     line_of_code: usize,
 }
 
+serde_with::with_prefix!(pref_process "process_");
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LogFlatten {
     level: LogLevel,
     us_since_unix_epoch: u128,
 
-    #[serde(flatten)]
+    #[serde(flatten, with = "pref_process")]
     process_info: ProcessInfo,
     #[serde(flatten)]
     debug_info: DebugInfo,
@@ -42,9 +44,7 @@ pub struct Log {
     level: LogLevel,
     us_since_unix_epoch: u128,
 
-    #[serde(flatten)]
     process_info: ProcessInfo,
-    #[serde(flatten)]
     debug_info: DebugInfo,
 
     content: String,

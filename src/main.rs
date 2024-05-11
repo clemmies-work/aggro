@@ -53,7 +53,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 error!("malformed json");
                 break;
             };
-            println!("{:?}", msg);
             tx.send(msg).unwrap();
             line.clear();
         }

@@ -12,10 +12,12 @@ pub struct Args {
     pub username: String,
     #[arg(long)]
     pub password: String,
-    
+
+    #[arg(long)]
+    pub organization: Option<String>,
     #[arg(long)]
     pub device_name: String,
-    
+
     #[arg(value_name = "PIPE_PATH")]
     pub pipe_path: PathBuf,
 }

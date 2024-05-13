@@ -22,10 +22,10 @@ pub struct Log {
     us_since_unix_epoch: u128,
 
     process_id: u32,
-    
+
     file_path: String,
     function_name: String,
     line_of_code: usize,
-    
+
     content: String,
 }

@@ -15,7 +15,6 @@ jobs:
       matrix:
         target: [ aarch64-unknown-linux-gnu ]
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
     - name: install cross
@@ -27,3 +26,36 @@ jobs:
       with:
         name: aggro-${{ matrix.target }}
         path: target/${{ matrix.target }}/release/aggro
+
+  deploy-pre:
+    runs-on: ubuntu-latest
+    steps:
+    - name: release
+      uses: actions/create-release@v1
+      id: create_release
+      with:
+        draft: false
+        prerelease: true
+        release_name: "v0.1.0-unstable"
+        tag_name: ${{ github.ref }}
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
+  deploy:
+    strategy:
+      matrix:
+        target: [ aarch64-unknown-linux-gnu ]
+    runs-on: ubuntu-latest
+    steps:
+    - name: download
+      uses: actions/download-artifact@v4
+      with:
+        name: aggro-${{ matrix.target }}
+    - name: release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: aggro-${{ matrix.target }}
+        asset_name: aggro-${{ matrix.target }}

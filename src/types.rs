@@ -19,6 +19,7 @@ pub struct ProcessInfo {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Log {
     level: LogLevel,
+    #[serde(rename(serialize = "_timestamp"))]
     us_since_unix_epoch: u128,
 
     process_id: u32,
